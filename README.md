@@ -332,7 +332,7 @@ Create a `.env` file with database credentials:
 ```
 PG_HOST=localhost
 PG_PORT=5432
-PG_DB=mindbridge
+PG_DB=bridgewell
 PG_USER=postgres
 PG_PASSWORD=password
 
