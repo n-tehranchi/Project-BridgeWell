@@ -24,7 +24,7 @@ load_dotenv()
 #neo4j connect
 NEO4J_URI = os.getenv("NEO4J_URI",       "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER",     "neo4j")
-NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "mindbridge123")
+NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "bridgewell123")
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
 
@@ -37,7 +37,7 @@ def get_pg():
     return psycopg2.connect(
         host=os.getenv("PG_HOST", "localhost"), 
         port=os.getenv("PG_PORT", 5432),
-        dbname=os.getenv("PG_DB", "mindbridge"),
+        dbname=os.getenv("PG_DB", "bridgewell"),
         user=os.getenv("PG_USER", "postgres"),
         password=os.getenv("PG_PASSWORD", ""),
     )
@@ -510,7 +510,7 @@ def load_programs():
 #running it all
 if __name__ == "__main__":
     print("=" * 60)
-    print("MindBridge - Neo4j Graph Loader")
+    print("BridgeWell - Neo4j Graph Loader")
     print("=" * 60)
 
     load_survey_aggregates()

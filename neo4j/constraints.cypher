@@ -1,5 +1,5 @@
 // ================================================
-// MINDBRIDGE: NEO4J SCHEMA - CONSTRAINTS & INDEXES
+// BridgeWell: NEO4J SCHEMA - CONSTRAINTS & INDEXES
 // ================================================
 
 // -- Uniqueness constraints 
