@@ -2,11 +2,11 @@
 
 ## Mental Health Employer Support Tool (BridgeWell)
 
-**Group 6**:
-Natalie Tehranachi,
-Mitra Rezvany,
-Sruthi Papanasa,
-Diana Freeman
+**Group 6**:  
+Natalie Tehranachi,  
+Mitra Rezvany,  
+Sruthi Papanasa,  
+Diana Freeman  
 
 ---
 
@@ -16,7 +16,7 @@ Mental health challenges in the workplace are increasingly recognized as a major
 
 The **Mental Health Employer Support Tool (BridgeWell)** is designed to help employers identify and implement evidence-based mental health and wellness programs tailored to their country and workforce context. The system integrates survey data, global health statistics, public wellness program datasets, and facility information to provide recommendations for employer wellness initiatives.
 
-The application combines **relational database analytics and graph-based recommendation modeling**. Survey data and structured workforce information are stored in PostgreSQL, while relationships between mental health needs, countries, programs, and resources are modeled using a Neo4j graph database. A FastAPI backend integrates these components and exposes endpoints for analysis and program recommendations.
+The application combines **relational database analytics and graph-based recommendation modeling**. Survey data and structured workforce information are stored in PostgreSQL, while relationships between mental health needs, countries, programs, and resources are modeled using Neo4j. A **FastAPI backend** integrates these components and exposes REST endpoints for country analysis, recommendation generation, graph visualization, and company registration. The current API is titled **BridgeWell**, version **1.0.0**, and is configured with permissive CORS settings to support frontend integration. :contentReference[oaicite:2]{index=2}
 
 The intended users of this tool include:
 
@@ -86,7 +86,7 @@ Additional datasets enrich the system:
 
 **WHO Atlas Indicators**
 
-* Mental health workforce statistics (e.g., psychiatrists per 100k population)
+* Mental health workforce statistics (for example, psychiatrists per 100k population)
 * Mental health policy indicators
 * National mental health budget estimates
 
@@ -98,6 +98,7 @@ Additional datasets enrich the system:
 * Meditation centers
 
 **Data.gov Public Datasets**
+
 Government datasets related to:
 
 * Workplace mental health programs
@@ -201,7 +202,7 @@ A **generated column** computes the composite mental health symptom score across
 
 ### Analytical Views
 
-Aggregated SQL views support the analysis API endpoints:
+Aggregated SQL views support the analysis API endpoints.
 
 Examples include:
 
@@ -216,7 +217,7 @@ These views calculate metrics such as:
 * percentage of respondents lacking employer support
 * untreated mental health rates
 
-These aggregated metrics feed into the graph model.
+These aggregated metrics feed into the graph model and are used directly by the `/analysis/{country}` and `/company` endpoints. :contentReference[oaicite:3]{index=3} :contentReference[oaicite:4]{index=4}
 
 ---
 
@@ -232,22 +233,22 @@ Graph databases are well suited for:
 
 ### Node Types
 
-**Country**
+**Country**  
 Represents each country included in the survey.
 
-**SurveySnapshot**
+**SurveySnapshot**  
 Stores aggregated mental health metrics derived from the relational database.
 
-**MentalHealthNeed**
+**MentalHealthNeed**  
 Represents identified needs such as:
 
 * Stress management
-* Anxiety & depression support
+* Anxiety and depression support
 * Sleep health
 * Digital wellness
 * Employer policy improvements
 
-**WellbeingProgram**
+**WellbeingProgram**  
 Represents employer wellness interventions such as:
 
 * Employee Assistance Programs (EAP)
@@ -256,14 +257,17 @@ Represents employer wellness interventions such as:
 * Sleep hygiene programs
 * Digital wellness programs
 
-**WHOProfile**
+**WHOProfile**  
 Stores country-level public health indicators.
 
-**Facility**
+**Facility**  
 Represents mental health services and wellness facilities.
 
-**GovDataset**
+**GovDataset**  
 Public datasets providing evidence supporting wellness programs.
+
+**Company**  
+Represents an employer registered through the API. Company nodes are linked to a country and used to return tailored recommendations. :contentReference[oaicite:5]{index=5}
 
 ---
 
@@ -277,8 +281,9 @@ Key graph relationships include:
 * `Country → HAS_WHO_PROFILE → WHOProfile`
 * `Country → HAS_FACILITY → Facility`
 * `WellbeingProgram → EVIDENCED_BY → GovDataset`
+* `Company → LOCATED_IN → Country`
 
-These relationships allow the system to identify which programs best address the needs present in each country.
+These relationships allow the system to identify which programs best address the needs present in each country, and to connect registered employers to their regional context. :contentReference[oaicite:6]{index=6} :contentReference[oaicite:7]{index=7}
 
 ---
 
@@ -293,16 +298,58 @@ The application integrates relational and graph databases to combine statistical
 3. A data loader script extracts these aggregates.
 4. Aggregates are converted into graph nodes and relationships in Neo4j.
 5. The graph model connects mental health needs with recommended programs.
+6. The FastAPI backend queries PostgreSQL for analytics and Neo4j for recommendations and graph traversal. :contentReference[oaicite:8]{index=8}
 
 ### Example Use Case
 
 When a company requests recommendations for a specific country:
 
-1. The system queries PostgreSQL to analyze mental health risk indicators.
-2. Identified needs are mapped to graph nodes in Neo4j.
+1. The system queries PostgreSQL to retrieve country-level workplace mental health metrics.
+2. Identified needs are mapped to graph relationships in Neo4j.
 3. The graph identifies programs that address those needs.
-4. Programs are ranked by how many needs they address.
-5. The system returns recommended workplace wellness initiatives.
+4. Programs are ranked by need coverage.
+5. The API returns recommended workplace wellness initiatives along with WHO context and selected country-level statistics. :contentReference[oaicite:9]{index=9} :contentReference[oaicite:10]{index=10}
+
+---
+
+# API Architecture
+
+BridgeWell uses a **FastAPI application** as the backend service layer. The API includes:
+
+* **Health and status checking**
+* **Country listing**
+* **Country-level analysis from PostgreSQL**
+* **Program recommendations from Neo4j**
+* **Graph export data for visualization**
+* **Company registration with tailored recommendations**
+
+The API is initialized with a lifespan handler that closes PostgreSQL and Neo4j connections when the application shuts down. It also enables CORS for all origins, methods, and headers to simplify frontend development and integration. :contentReference[oaicite:11]{index=11}
+
+---
+
+# Connection Management
+
+BridgeWell uses a shared database utility module for both PostgreSQL and Neo4j.
+
+### PostgreSQL
+
+The PostgreSQL connection is managed through helper functions that:
+
+* reuse a global connection when available
+* automatically reconnect if the connection is closed
+* use `RealDictCursor` so query results behave like dictionaries
+* commit transactions on success
+* rollback on failure
+
+### Neo4j
+
+The Neo4j connection layer:
+
+* initializes a reusable driver from environment variables
+* creates sessions for Cypher execution
+* returns query results as dictionaries
+
+Both connections are closed cleanly by `close_connections()` during FastAPI shutdown. :contentReference[oaicite:12]{index=12}
 
 ---
 
@@ -321,90 +368,3 @@ When a company requests recommendations for a specific country:
 
 ```bash
 pip install fastapi uvicorn psycopg2-binary neo4j python-dotenv requests
-```
-
----
-
-### Environment Variables
-
-Create a `.env` file with database credentials:
-
-```
-PG_HOST=localhost
-PG_PORT=5432
-PG_DB=bridgewell
-PG_USER=postgres
-PG_PASSWORD=password
-
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=password
-```
-
----
-
-### Load Graph Data
-
-Run the graph loader to populate Neo4j:
-
-```bash
-python load_graph.py
-```
-
-This script:
-
-* Imports survey aggregates
-* Loads WHO indicators
-* Retrieves facility data from OpenStreetMap
-* Retrieves wellness datasets from data.gov
-* Seeds wellbeing program nodes
-
----
-
-### Run the API
-
-Start the FastAPI application:
-
-```bash
-uvicorn main:app --reload
-```
-
----
-
-### API Endpoints
-
-**Health Check**
-
-```
-GET /
-```
-
-**List Countries**
-
-```
-GET /countries
-```
-
-**Country Analysis**
-
-```
-GET /analysis/{country}
-```
-
-**Program Recommendations**
-
-```
-GET /recommendations/{country}
-```
-
-**Graph Visualization Data**
-
-```
-GET /graph/{country}
-```
-
-**Register Company**
-
-```
-POST /company
-```
